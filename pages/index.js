@@ -1,8 +1,44 @@
+/* eslint-disable @next/next/no-img-element */
+// components
+import AppLayout from "components/AppLayout";
+import Avatar from "components/Avatar";
+import Button from "components/Button";
+import GitHub from "components/Icons/GitHub";
+import Logo from "components/Icons/Logo";
+// metodos client
+import {
+  loginWithGitHub,
+  onAuthStateChangedControl,
+} from "firebase-data/client";
+// react & next
 import Head from "next/head";
-import Link from "next/link";
-import styles from "../styles/Home.module.css";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+// styles
+import { colors } from "styles/theme";
 
 export default function Home() {
+  const [user, setUser] = useState(undefined);
+  const router = useRouter();
+
+  useEffect(() => {
+    onAuthStateChangedControl(setUser);
+  }, []);
+
+  useEffect(() => {
+    user && router.replace("/home");
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  const handleClick = () => {
+    loginWithGitHub()
+      .then(setUser)
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
   return (
     <>
       <Head>
@@ -11,33 +47,68 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Develter.js!</a>
-        </h1>
-        <nav className="timeline">
-          <Link href="/timeline">Timeline </Link>
-        </nav>
-      </main>
-
-      {/* <footer className={styles.footer}></footer> */}
+      <AppLayout>
+        <section>
+          <Logo width="100" />
+          <h1>Develter</h1>
+          <h2>Talk about development with developers 👩‍💻👨‍💻</h2>
+          {user === null && (
+            <div onClick={handleClick}>
+              <Button>
+                <GitHub fill="#fff" width={32} height={32} />
+                <span>Login with Github</span>
+              </Button>
+            </div>
+          )}
+          {user && user.screenName && (
+            <div>
+              <Avatar
+                src={user.photoUrl}
+                alt={user.screenName}
+                text={user.screenName}
+              />
+            </div>
+          )}
+        </section>
+      </AppLayout>
 
       <style jsx>
         {`
+          section {
+            display: grid;
+            height: 100%;
+            place-content: center;
+            place-items: center;
+          }
           h1 {
-            color: red;
+            color: ${colors.primary};
+            font-weight: 800;
+            font-size: 2rem;
+            margin: 0;
+            margin-bottom: 0;
+            line-height: 1.15;
           }
 
-          nav {
-            font-size: 24px;
-            text-align: center;
+          h2 {
+            color: ${colors.secondary};
+            font-size: 1.125rem;
+            margin: 0;
           }
 
-          .richard {
-            color: green;
+          img {
+            width: 7.5rem;
+          }
+          div {
+            margin-top: 1rem;
+          }
+          a {
+            color: ${colors.primary};
           }
         `}
       </style>
     </>
   );
 }
+
+// Notas
+// tag "a": para usarlo desactiva el eslint en la linea 1
